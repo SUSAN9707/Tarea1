@@ -12,7 +12,7 @@ public class Lexer {
     // Mapa que relaciona cada tipo de token con su expresión regular correspondiente
     private static final Map<String, Pattern> patterns = new LinkedHashMap<>();
 
-    static {
+   /* static {
         // Inicialización de los patrones para los diferentes tipos de tokens (ej. corchetes, números, etc.)
         patterns.put("L_CORCHETE", Pattern.compile("^\\[")); // Token para el corchete izquierdo
         patterns.put("R_CORCHETE", Pattern.compile("^\\]")); // Token para el corchete derecho
@@ -25,17 +25,39 @@ public class Lexer {
         patterns.put("PR_TRUE", Pattern.compile("^(?i)true")); // Token para el valor booleano 'true'
         patterns.put("PR_FALSE", Pattern.compile("^(?i)false")); // Token para el valor booleano 'false'
         patterns.put("PR_NULL", Pattern.compile("^(?i)null")); // Token para el valor nulo 'null'
+    }*/
+
+    static {
+        patterns.put("{", Pattern.compile("^\\{"));
+        patterns.put("}", Pattern.compile("^\\}"));
+        patterns.put("[", Pattern.compile("^\\["));
+        patterns.put("]", Pattern.compile("^\\]"));
+        patterns.put(",", Pattern.compile("^,"));
+        patterns.put(":", Pattern.compile("^:"));
+
+// Palabras reservadas primero
+        patterns.put("PR_TRUE", Pattern.compile("^(?i)true\\b"));
+        patterns.put("PR_FALSE", Pattern.compile("^(?i)false\\b"));
+        patterns.put("PR_NULL", Pattern.compile("^(?i)null\\b"));
+
+// Luego STRING y NUMBER
+        patterns.put("STRING", Pattern.compile("^\"[^\"]*\""));
+        patterns.put("NUMBER", Pattern.compile("^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?"));
     }
 
     public static void main(String[] args) {
         try {
-            // Leer las líneas del archivo de entrada
-            List<String> lineas = Files.readAllLines(Paths.get(INPUT_PATH));
-            analizar(lineas); // Iniciar el análisis léxico de las líneas
-            guardarTokens(); // Guardar los tokens en el archivo de salida
-            System.out.println("Análisis léxico completo."); // Confirmación de finalización del análisis
+            List<String> lines = Files.readAllLines(Paths.get(INPUT_PATH));
+            analizar(lines); // tu función original con sangrías
+            guardarTokens(); // salida formateada con indentación
+
+            // Usamos la nueva función para pasarle solo los tokens limpios al parser
+            List<Token> tokensParaParser = analizarParaParser(INPUT_PATH);
+            Parser parser = new Parser(tokensParaParser);
+            parser.parse();
+
         } catch (IOException e) {
-            System.err.println("Error leyendo archivo fuente: " + e.getMessage()); // Manejo de errores al leer el archivo
+            System.err.println("Error leyendo archivo fuente: " + e.getMessage());
         }
     }
 
@@ -77,6 +99,36 @@ public class Lexer {
 
         // Si se quisiera agregar un token especial para representar el final del archivo
         //tokens.add(new Token("EOF", "EOF"));
+    }
+    public static List<Token> analizarParaParser(String path) {
+        List<Token> tokenList = new ArrayList<>();
+        try {
+            List<String> lineas = Files.readAllLines(Paths.get(path));
+            for (String linea : lineas) {
+                String contenido = linea.stripLeading();
+                while (!contenido.isEmpty()) {
+                    boolean match = false;
+                    for (var entry : patterns.entrySet()) {
+                        Matcher matcher = entry.getValue().matcher(contenido);
+                        if (matcher.find()) {
+                            String lexema = matcher.group();
+                            tokenList.add(new Token(entry.getKey(), lexema));
+                            contenido = contenido.substring(lexema.length()).stripLeading();
+                            match = true;
+                            break;
+                        }
+                    }
+                    if (!match) {
+                        System.err.println("Error léxico: símbolo inesperado '" + contenido.charAt(0) + "'");
+                        contenido = contenido.substring(1).stripLeading();
+                    }
+                }
+            }
+            tokenList.add(new Token("EOF", "EOF"));
+        } catch (IOException e) {
+            System.err.println("Error leyendo archivo fuente: " + e.getMessage());
+        }
+        return tokenList;
     }
 
     // Método para guardar los tokens encontrados en el archivo de salida
