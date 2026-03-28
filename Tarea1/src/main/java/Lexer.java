@@ -12,7 +12,7 @@ public class Lexer {
     // Mapa que relaciona cada tipo de token con su expresión regular correspondiente
     private static final Map<String, Pattern> patterns = new LinkedHashMap<>();
 
-   /* static {
+    static {
         // Inicialización de los patrones para los diferentes tipos de tokens (ej. corchetes, números, etc.)
         patterns.put("L_CORCHETE", Pattern.compile("^\\[")); // Token para el corchete izquierdo
         patterns.put("R_CORCHETE", Pattern.compile("^\\]")); // Token para el corchete derecho
@@ -25,9 +25,9 @@ public class Lexer {
         patterns.put("PR_TRUE", Pattern.compile("^(?i)true")); // Token para el valor booleano 'true'
         patterns.put("PR_FALSE", Pattern.compile("^(?i)false")); // Token para el valor booleano 'false'
         patterns.put("PR_NULL", Pattern.compile("^(?i)null")); // Token para el valor nulo 'null'
-    }*/
+    }
 
-    static {
+    /*static {
         patterns.put("{", Pattern.compile("^\\{"));
         patterns.put("}", Pattern.compile("^\\}"));
         patterns.put("[", Pattern.compile("^\\["));
@@ -44,17 +44,17 @@ public class Lexer {
         patterns.put("STRING", Pattern.compile("^\"[^\"]*\""));
         patterns.put("NUMBER", Pattern.compile("^[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?"));
     }
-
+*/
     public static void main(String[] args) {
         try {
             List<String> lines = Files.readAllLines(Paths.get(INPUT_PATH));
-            analizar(lines); // tu función original con sangrías
+            analizar(lines); //  función original con sangrías
             guardarTokens(); // salida formateada con indentación
 
             // Usamos la nueva función para pasarle solo los tokens limpios al parser
-            List<Token> tokensParaParser = analizarParaParser(INPUT_PATH);
+            /*List<Token> tokensParaParser = analizarParaParser(INPUT_PATH);
             Parser parser = new Parser(tokensParaParser);
-            parser.parse();
+            parser.parse();*/
 
         } catch (IOException e) {
             System.err.println("Error leyendo archivo fuente: " + e.getMessage());
