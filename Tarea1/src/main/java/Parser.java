@@ -46,18 +46,41 @@ public class Parser {
                 match("}");
             } else {
                 atributos();
-                match("}");
+                consume("}", "'}'");
             }
         } else {
             error("{");
-            sincronizar("{");
+            sincronizar("{", "}", "EOF");
         }
     }
-
+    private void consume(String tipo, String esperado) {
+        if (!match(tipo)) {
+            error(esperado);
+        }
+    }
     private void atributos() {
         atributo();
-        while (match(",")) {
-            atributo();
+
+        while (!check("}") && !check("EOF") && !isAtEnd()) {
+            if (match(",")) {
+                if (check("}")) {
+                    error("STRING (clave) después de ','");
+                    return;
+                }
+                atributo();
+            } else if (check("STRING")) {
+                error("',' entre atributos");
+                atributo(); // continúa para no trabarse
+            } else {
+                error("',' o '}'");
+                sincronizar(",", "}", "EOF");
+
+                if (match(",")) {
+                    if (!check("}") && !check("EOF")) {
+                        atributo();
+                    }
+                }
+            }
         }
     }
 
@@ -79,18 +102,34 @@ public class Parser {
                 match("]");
             } else {
                 elementos();
-                match("]");
+                consume("]", "']'");
             }
         } else {
             error("[");
-            sincronizar("[");
+            sincronizar("[", "]", "EOF");
         }
     }
 
     private void elementos() {
         valor();
-        while (match(",")) {
-            valor();
+
+        while (!check("]") && !check("EOF") && !isAtEnd()) {
+            if (match(",")) {
+                if (check("]")) {
+                    error("valor después de ','");
+                    return;
+                }
+                valor();
+            } else {
+                error("',' o ']'");
+                sincronizar(",", "]", "EOF");
+
+                if (match(",")) {
+                    if (!check("]") && !check("EOF")) {
+                        valor();
+                    }
+                }
+            }
         }
     }
 
@@ -117,11 +156,13 @@ public class Parser {
         return false;
     }
 
-    private boolean check(String tipo) {
+    private boolean check(String esperado) {
         if (isAtEnd()) return false;
-        return tokens.get(index).getTipo().equals(tipo);
-    }
 
+        Token actual = tokens.get(index);
+
+        return actual.getTipo().equals(esperado) || actual.getValor().equals(esperado);
+    }
     private void error(String esperado) {
         Token actual = isAtEnd() ? new Token("EOF", "EOF") : tokens.get(index);
         System.err.println("Error: se esperaba " + esperado + " en " + actual.getValor());

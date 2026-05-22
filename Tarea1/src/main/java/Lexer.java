@@ -52,9 +52,9 @@ public class Lexer {
             guardarTokens(); // salida formateada con indentación
 
             // Usamos la nueva función para pasarle solo los tokens limpios al parser
-            /*List<Token> tokensParaParser = analizarParaParser(INPUT_PATH);
+            List<Token> tokensParaParser = analizarParaParser(INPUT_PATH);
             Parser parser = new Parser(tokensParaParser);
-            parser.parse();*/
+            parser.parse();
 
         } catch (IOException e) {
             System.err.println("Error leyendo archivo fuente: " + e.getMessage());
@@ -102,32 +102,42 @@ public class Lexer {
     }
     public static List<Token> analizarParaParser(String path) {
         List<Token> tokenList = new ArrayList<>();
+
         try {
             List<String> lineas = Files.readAllLines(Paths.get(path));
+
             for (String linea : lineas) {
                 String contenido = linea.stripLeading();
+
                 while (!contenido.isEmpty()) {
                     boolean match = false;
+
                     for (var entry : patterns.entrySet()) {
                         Matcher matcher = entry.getValue().matcher(contenido);
-                        if (matcher.find()) {
+
+                        if (matcher.lookingAt()) {
                             String lexema = matcher.group();
                             tokenList.add(new Token(entry.getKey(), lexema));
+
                             contenido = contenido.substring(lexema.length()).stripLeading();
                             match = true;
                             break;
                         }
                     }
+
                     if (!match) {
                         System.err.println("Error léxico: símbolo inesperado '" + contenido.charAt(0) + "'");
                         contenido = contenido.substring(1).stripLeading();
                     }
                 }
             }
+
             tokenList.add(new Token("EOF", "EOF"));
+
         } catch (IOException e) {
             System.err.println("Error leyendo archivo fuente: " + e.getMessage());
         }
+
         return tokenList;
     }
 
