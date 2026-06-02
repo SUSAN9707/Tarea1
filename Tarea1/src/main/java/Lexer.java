@@ -56,6 +56,10 @@ public class Lexer {
             Parser parser = new Parser(tokensParaParser);
             parser.parse();
 
+            // Tarea 3: traduccion dirigida por la sintaxis
+            Translator translator = new Translator(tokensParaParser);
+            translator.translate();
+
         } catch (IOException e) {
             System.err.println("Error leyendo archivo fuente: " + e.getMessage());
         }
